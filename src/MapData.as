@@ -15,8 +15,9 @@
 		public static  const ISO_H:uint = 50;
 		
 		//游戏地图数据
-		//_gameMap[mapID][mapArray]  为A寻路二维数组
-		//_gameMap[mapID][mapArray] 
+		//_gameMap[mapID][pathArray]  为A寻路路径二维数组
+		//_gameMap[mapID][numX]      横向的格数
+		//_gameMap[mapID][numY]      纵向的格数
 		private static var _gameMap:Dictionary;
 		
 		public function MapData()
@@ -33,10 +34,10 @@
 		 * @param	mapID
 		 * @return
 		 */
-		public static function getMapDataByID(mapID:String):Object 
+		public static function getMapData(mapID:String):Object 
 		{
-			if (!(id in MapData._getMap()))
-				throw new Error('Cannot get Stage ("' + id + '") before it has been set.');
+			if (!(mapID in MapData._getMap()))
+				throw new Error('Cannot get Stage ("' + mapID + '") before it has been set.');
 			
 			return MapData._getMap()[mapID];
 		}
@@ -58,7 +59,7 @@
 		 */
 		public static function removeMapData(mapID:String):Boolean 
 		{
-			if (!(id in MapData._getMap()))
+			if (!(mapID in MapData._getMap()))
 				return false;
 			
 			MapData.setMapData(null,mapID);

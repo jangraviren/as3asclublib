@@ -14,11 +14,15 @@
 	import events.AvatarEvent;
 	
 	import org.asclub.display.DrawUtil;
+	import org.asclub.display.FrameUtil;
 	import org.asclub.utils.ReflectUtil;
 	
 	
 	public class Maps extends Sprite
 	{
+		//地图网格数据
+		private var _mapArray:Array;
+		
 		//背景缓存 关联数组
 		private var _bgMaps:Dictionary;
 		
@@ -62,10 +66,10 @@
 		//玩家自己
 		private var _myself:Avatar;
 		
-		//鼠标在地图上点击时的效果
+		//鼠标在地图上可点击时的效果
 		private var _clickEffectMc:MovieClip;
 		
-		//地图不可点击效果
+		//鼠标在地图上不可点击时的效果
 		private var _noClickEffectMc:MovieClip;
 		
 		
@@ -106,6 +110,9 @@
 		 */
 		public function setBG(bg:Object,mapID:String):void
 		{
+			
+			_mapArray = MapData.getMapData(mapID)["pathArray"];
+			
 			//如果背景已经缓存
 			if(_bgMaps[mapID])
 			{
@@ -245,6 +252,7 @@
 			//效果层
 			_effectLayer = new Sprite();
 			addClickEffect();
+			addNoClickEffect();
 			
 			this.addChild(_bgLayer);
 			this.addChild(_transmissionGateLayer);
@@ -261,8 +269,39 @@
 			//var targetPoint:Point = _avatarLayer.globalToLocal(parentPoint);
 			
 			//_myself.moveTo(targetPoint.x, targetPoint.y);
-			_myself.moveTo(this.mouseX, this.mouseY);
-			showClickEffect();
+			
+			var clickedX:int = Math.floor(this.mouseX/MapData.ISO_W);
+			var clickedY:int = Math.floor(this.mouseY / MapData.ISO_H);
+			
+			var nowX:int = Math.floor(_myself.position.x / MapData.ISO_W);
+			var nowY:int = Math.floor(_myself.position.y / MapData.ISO_H);
+			
+			
+			trace("现在所在网格x:" + nowX);
+			trace("现在所在网格y:" + nowY);
+			trace("鼠标点击x：" + clickedX);
+			trace("鼠标点击y：" + clickedY);
+			
+			if (_mapArray[clickedY][clickedX] == 0) 
+			{
+				showClickEffect();
+				_myself.moveTo(this.mouseX, this.mouseY);
+				var walkArray:Array = SearchRoad.startSearch(_mapArray, clickedX, clickedY, nowX, nowY);
+				if (walkArray)
+				{
+					trace("路径长度:" + walkArray.length + "   路径: " + walkArray);
+				}
+				else
+				{
+					trace("死路一条");
+				}
+				
+			}
+			else
+			{
+				trace("不能点击");
+				showNoClickEffect();
+			}
 		}
 		
 		//自己走动时触发(以为只有当玩家自己走动时背景才会跟随相应运动)
@@ -402,7 +441,7 @@
 				//_bgLayer.getChildAt(i).x += (1 - _bgBitmapSpeed[i]) * value;
 				//
 				_bgLayer.getChildAt(i).x = (1 - _bgBitmapSpeed[i]) * this.scrollRect.x * 0.8;
-				trace(_bgLayer.getChildAt(i).x);
+				//trace(_bgLayer.getChildAt(i).x);
 			}
 		}
 		
@@ -439,6 +478,39 @@
 				_clickEffectMc.visible = false;
 				_clickEffectMc.gotoAndStop(1);
 			}
+		}
+		
+		//添加鼠标在地图上不可点击时的效果
+		private function addNoClickEffect():void
+		{
+			var ref:Class = ReflectUtil.getDefinitionByName("NoClickEffectMc");
+			if (ref)
+			{
+				_noClickEffectMc = new ref();
+				_noClickEffectMc.visible = false;
+				_noClickEffectMc.gotoAndStop(1);
+				FrameUtil.addFrameScript(_noClickEffectMc, _noClickEffectMc.totalFrames, noClickEffectMcPlayOver);
+				_effectLayer.addChild(_noClickEffectMc);
+			}
+		}
+		
+		//显示鼠标在地图上点击时的效果
+		private function showNoClickEffect():void
+		{
+			if (_noClickEffectMc)
+			{
+				_noClickEffectMc.visible = true;
+				_noClickEffectMc.x = this.mouseX;
+				_noClickEffectMc.y = this.mouseY;
+				_noClickEffectMc.gotoAndPlay(1);
+			}
+		}
+		
+		//不可点击影片剪辑播放完毕
+		private function noClickEffectMcPlayOver():void
+		{
+			_noClickEffectMc.visible = false;
+			_noClickEffectMc.gotoAndStop(1);
 		}
 		
 	}//end of class

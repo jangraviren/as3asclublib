@@ -83,8 +83,8 @@
 			
 			//载入swf ui 库
 			var gameAssets:SWFLibrary = new SWFLibrary();
-			//gameAssets.load("../swf/lib.swf");
-			gameAssets.load("lib.swf");
+			gameAssets.load("../swf/lib.swf");
+			//gameAssets.load("lib.swf");
 			gameAssets.addEventListener(Event.COMPLETE, gameAssetsLoadedCompleteHandler);
 		}
 		
@@ -95,6 +95,40 @@
 		//游戏ui资源载入完毕时触发
 		private function gameAssetsLoadedCompleteHandler(event:Event):void
 		{
+			//先模拟一个地图数据
+			var mapData:Object = { };
+			mapData["pathArray"] = [];
+			mapData["numX"] = 50;
+			mapData["numY"] = 13;
+			
+			for (var y1:int = 0; y1 < 13; y1++)
+			{
+				mapData["pathArray"][y1] = [];
+				for (var x1:int = 0; x1 < 50; x1++)
+				{
+					mapData["pathArray"][y1][x1] = 1;
+				}
+			}
+			
+			for (var y2:int = 7; y2 < 13; y2++)
+			{
+				//mapData["pathArray"][y2] = [];
+				for (var x2:int = 0; x2 < 50; x2++)
+				{
+					mapData["pathArray"][y2][x2] = 0;
+				}
+			}
+			
+			MapData.setMapData(mapData, "map0001");
+			
+			
+			for (var y4:int = 0; y4 < mapData["numY"]; y4++)
+			{
+				for (var x4:int = 0; x4 < mapData["numX"]; x4++)
+				{
+					//trace("y:" + y4 + "x" + x4 + ":" + mapData["pathArray"][y4][x4]);
+				}
+			}
 			
 			
 			//添加地图到舞台
@@ -146,12 +180,12 @@
 			
 			var t1:int = getTimer();
 			//event.currentTarget.setBG(bg1.bitmapData, "bg1");
-			event.currentTarget.setBG([ { bitmap:bg2, vx:0.8 }, { bitmap:bg1, vx:1 } ], "bg1");
+			event.currentTarget.setBG([ { bitmap:bg2, vx:0.8 }, { bitmap:bg1, vx:1 } ], "map0001");
 			trace("设置背景耗时:" + (getTimer() - t1));
 			
 			var player:Player = new Player(animationTimer, allBitmapDatas, labels);
 			player.avatarID = "007";
-			player.mouseOffest = new Point( -30, -110);
+			player.mouseOffest = new Point( -40, -110);
 			event.currentTarget.addAvatar(player, 300, 400);
 			
 			//添加测试人物
