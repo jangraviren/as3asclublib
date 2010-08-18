@@ -34,8 +34,8 @@
 		//角色行走速度(1秒钟150像素)
 		public var speed:Number = 150;
 		
-		//皮肤是否完全载入
-		protected var _skinLoadedComlete:Boolean;
+		//皮肤是否完全载入(如未载入则暂时先用简单图形替代直到完全载入皮肤)
+		protected var _skinLoadedComplete:Boolean;
 		
 		public function Avatar(timer:Timer, sourceBitmapDatas:Array, labels:Array)
 		{
@@ -141,6 +141,10 @@
 			this.y = value.y + mouseOffest.y;
 		}
 		
+		//===========================================================================================================
+		//  Public method
+		//===========================================================================================================
+		
 		/**
 		 * 将角色移动到其父级指定位置
 		 * @param	x  
@@ -154,6 +158,10 @@
 		 * @param	value
 		 */
 		public function changeSkin(value:Object):void { }
+		
+		//===========================================================================================================
+		//  Protected method
+		//===========================================================================================================
 		
 		//时基
 		protected function tickHandler(event:TickerEvent):void { }

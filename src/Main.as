@@ -101,21 +101,30 @@
 			mapData["numX"] = 50;
 			mapData["numY"] = 13;
 			
-			for (var y1:int = 0; y1 < 13; y1++)
-			{
-				mapData["pathArray"][y1] = [];
-				for (var x1:int = 0; x1 < 50; x1++)
-				{
-					mapData["pathArray"][y1][x1] = 1;
-				}
-			}
-			
-			for (var y2:int = 7; y2 < 13; y2++)
-			{
+			//for (var y1:int = 0; y1 < 13; y1++)
+			//{
+				//mapData["pathArray"][y1] = [];
+				//for (var x1:int = 0; x1 < 50; x1++)
+				//{
+					//mapData["pathArray"][y1][x1] = 1;
+				//}
+			//}
+			//
+			//for (var y2:int = 7; y2 < 13; y2++)
+			//{
 				//mapData["pathArray"][y2] = [];
-				for (var x2:int = 0; x2 < 50; x2++)
+				//for (var x2:int = 0; x2 < 50; x2++)
+				//{
+					//mapData["pathArray"][y2][x2] = 0;
+				//}
+			//}
+			
+			for (var x1:int = 0; x1 < 50; x1++)
+			{
+				mapData["pathArray"][x1] = [];
+				for (var y1:int = 0; y1 < 13; y1++)
 				{
-					mapData["pathArray"][y2][x2] = 0;
+					mapData["pathArray"][x1][y1] = 0;
 				}
 			}
 			

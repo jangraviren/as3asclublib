@@ -12,6 +12,7 @@
 	import flash.utils.Dictionary;
 	
 	import events.AvatarEvent;
+	import astar.AStar;
 	
 	import org.asclub.display.DrawUtil;
 	import org.asclub.display.FrameUtil;
@@ -266,6 +267,7 @@
 		{
 			//先将自己在可活动区域的坐标转为this(maps)的坐标
 			//var parentPoint:Point = this.localToGlobal(new Point(event.currentTarget.mouseX, event.currentTarget.mouseY));
+			//再将this(maps)的坐标转为角色层的坐标
 			//var targetPoint:Point = _avatarLayer.globalToLocal(parentPoint);
 			
 			//_myself.moveTo(targetPoint.x, targetPoint.y);
@@ -282,14 +284,19 @@
 			trace("鼠标点击x：" + clickedX);
 			trace("鼠标点击y：" + clickedY);
 			
-			if (_mapArray[clickedY][clickedX] == 0) 
+			if (_mapArray[clickedX][clickedY] == 0)
 			{
 				showClickEffect();
 				_myself.moveTo(this.mouseX, this.mouseY);
-				var walkArray:Array = SearchRoad.startSearch(_mapArray, clickedX, clickedY, nowX, nowY);
+				//var walkArray:Array = SearchRoad.startSearch(_mapArray, clickedX, clickedY, nowX, nowY);
+				var walkArray:Array = AStar.searchRoad(_mapArray, clickedX, clickedY, nowX, nowY);
 				if (walkArray)
 				{
-					trace("路径长度:" + walkArray.length + "   路径: " + walkArray);
+					trace("路径长度:" + walkArray.length);
+					for (var i:* in walkArray)
+					{
+						trace("x:" + walkArray[i]["x"] / 50 + "  y:" + walkArray[i]["y"] / 50);
+					}
 				}
 				else
 				{

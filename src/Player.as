@@ -40,12 +40,7 @@
 		//时基
 		override protected function tickHandler(event:TickerEvent):void
 		{
-			//trace(position);
-			//trace(targetPoint);
-			//var tar:Point = targetPoint.add(mouseOffest);//目标坐标
-			//var tar:Point = targetPoint;//目标坐标
 			var p:Point = targetPoint.subtract(position);//坐标差值
-			//trace(event.realDelay);
 			
 			//在原来的方向上走一段距离
 			var step:Number = event.realDelay * speed / 1000;
