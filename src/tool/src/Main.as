@@ -15,7 +15,7 @@
 	import org.asclub.system.MonitorKit;
 	
 	/**
-	 * ...
+	 * ...横版地图数据生成器
 	 * @author DefaultUser (Tools -> Custom Arguments...)
 	 */
 	public class Main extends Sprite
@@ -216,6 +216,16 @@
 			mapBitmapData.draw(_imageLoader);
 			var pixelValue:uint = mapBitmapData.getPixel(1, 1);
 			trace(pixelValue.toString(16)); // ffffff;
+			var data:String = "w=" + _numGridWidth + "&h=" + _numGridHeight;
+			var colorContainer:Array = [];
+			for (var i:int = 0; i < _mapWidth; i++)
+			{
+				colorContainer[i / _gridWidth >> 0] = [];
+				for (var j:int = 0; j < _mapHeight; j++)
+				{
+					
+				}
+			}
 		}
 	}//end class
 }

@@ -173,6 +173,8 @@
 				//avatar.targetPoint = avatar.startPoint.subtract(avatar.mouseOffest);
 				avatar.targetPoint = avatar.startPoint;
 				_avatarLayer.addChild(avatar);
+				_avatarMaps[avatar.avatarID] = avatar;
+				avatar.start();
 				//如果角色ID等于自己的ID，则这个角色就是自己
 				if (avatar.avatarID == String(Main.myAvatarID))
 				{
@@ -222,6 +224,7 @@
 				return false;
 			}
 			
+			_avatarMaps[avatarID].stop();
 			_avatarLayer.removeChild(_avatarMaps[avatarID]);
 			_avatarMaps[avatarID] = null;
 			
@@ -320,15 +323,17 @@
 			if (_mapArray[clickedX][clickedY] == 0)
 			{
 				showClickEffect();
-				_myself.moveTo(this.mouseX, this.mouseY);
+				//SocketClient.Move(this.mouseX, this.mouseY);
 				//var walkArray:Array = SearchRoad.startSearch(_mapArray, clickedX, clickedY, nowX, nowY);
 				var walkArray:Array = AStar.searchRoad(_mapArray, clickedX, clickedY, nowX, nowY);
 				if (walkArray)
 				{
+					//_myself.moveTo(this.mouseX, this.mouseY);
+					_myself.walkAsPath(walkArray);
 					trace("路径长度:" + walkArray.length);
 					for (var i:* in walkArray)
 					{
-						trace("x:" + walkArray[i]["x"] / 50 + "  y:" + walkArray[i]["y"] / 50);
+						trace("x:" + walkArray[i]["x"] + "  y:" + walkArray[i]["y"]);
 					}
 				}
 				else
@@ -552,6 +557,10 @@
 			_noClickEffectMc.visible = false;
 			_noClickEffectMc.gotoAndStop(1);
 		}
+		
+		
+				
+				
 		
 	}//end of class
 }

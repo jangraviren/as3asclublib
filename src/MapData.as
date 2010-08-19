@@ -13,6 +13,9 @@
 		public static  const ISO_W:uint = 50;
 		//地图元素的高度
 		public static  const ISO_H:uint = 50;
+		//单个单元格的宽度
+		public static const GRID_WIDTH:int = 50;
+		public static const GRID_HEIGHT:int = 50;
 		
 		//游戏地图数据
 		//_gameMap[mapID][pathArray]  为A寻路路径二维数组

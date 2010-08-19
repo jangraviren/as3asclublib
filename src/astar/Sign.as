@@ -27,7 +27,8 @@
 		
 		//获取该标记的坐标
 		public function getSign():Object{
-			return {x:_ix * AStar.GRID_WIDTH,y:_iy * AStar.GRID_HEIGHT};
+			//return {x:_ix * MapData.GRID_WIDTH,y:_iy * MapData.GRID_HEIGHT};
+			return {x:_ix,y:_iy};
 		}
 		
 		//获取它表示的x坐标

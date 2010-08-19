@@ -10,9 +10,6 @@
 		//纵横方块格数
 		public static const WIDTH_NUMBER:int = 50;
 		public static const HEIGHT_NUMBER:int = 50;
-		//单个单元格的宽度
-		public static const GRID_WIDTH:int = 50;
-		public static const GRID_HEIGHT:int = 50;
 		//没有任何东西
 		public static const NO_THING:int = 0;
 		

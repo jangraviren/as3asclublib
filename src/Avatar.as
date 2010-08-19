@@ -4,6 +4,10 @@
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.geom.Point;
+	import flash.text.TextField;
+	import flash.text.TextFormatAlign;
+	import flash.text.TextFieldAutoSize;
+	import flash.text.TextFormat;
 	import flash.utils.Timer;
 	
 	import org.asclub.display.Animation;
@@ -16,6 +20,12 @@
 	 */
 	public class Avatar extends Sprite
 	{
+		//
+		private var _labelName:TextField;
+		
+		//计时器
+		private var _timer:Timer;
+		
 		//当前正在播放的动画
 		protected var _curPlayingAnimation:Animation;
 		
@@ -34,18 +44,19 @@
 		//角色行走速度(1秒钟150像素)
 		public var speed:Number = 150;
 		
+		//角色行走路径
+		protected var _walkPath:Array = [];
+		
 		//皮肤是否完全载入(如未载入则暂时先用简单图形替代直到完全载入皮肤)
 		protected var _skinLoadedComplete:Boolean;
 		
 		public function Avatar(timer:Timer, sourceBitmapDatas:Array, labels:Array)
 		{
-			
+			_timer = timer;
 			//动画片段数(一个标签即一个片段)
 			var numAnimation:int = labels.length;
 			//每个片段帧数
 			//var numFrame:int = sourceBitmapDatas.length / numAnimation;
-			//驱动动画用的时基
-			timer.addEventListener(TickerEvent.TICKER, tickHandler);
 			
 			for (var i:int = 0; i < numAnimation; i++)
 			{
@@ -70,6 +81,20 @@
 			_curPlayingAnimation = _animation[labels[0].name];
 			_animation[labels[0].name].play();
 			addChild(_curPlayingAnimation);
+			
+			//添加文本框
+			_labelName = new TextField();
+			var textFormat:TextFormat = new TextFormat();
+			textFormat.align = TextFieldAutoSize.CENTER;
+			textFormat.size = 12;
+			textFormat.font = "宋体";
+			_labelName.defaultTextFormat = textFormat;
+			_labelName.text = "test";
+			_labelName.width = _curPlayingAnimation.width + 50;
+			_labelName.height = _labelName.textHeight + 4;
+			_labelName.x = _curPlayingAnimation.x + (_curPlayingAnimation.width - _labelName.width) * 0.5;
+			_labelName.y = _curPlayingAnimation.y + 120;
+			addChild(_labelName);
 		}
 		
 		//九宫格帧标签(角色的八个方向)
@@ -94,7 +119,7 @@
 		 */
 		public function set avatarName(value:String):void
 		{ 
-			throw new Error("请在子类中重写此方法");
+			_labelName.text = value;
 		}
 		
 		/**
@@ -102,8 +127,7 @@
 		 */
 		public function get avatarName():String
 		{ 
-			throw new Error("请在子类中重写此方法");
-			return "";
+			return _labelName.text;
 		}
 		
 		/**
@@ -146,11 +170,44 @@
 		//===========================================================================================================
 		
 		/**
+		 * 启动计时器
+		 */
+		public function start():void
+		{
+			//驱动动画用的时基
+			_timer.addEventListener(TickerEvent.TICKER, tickHandler);
+		}
+		
+		/**
+		 * 停止计时器
+		 */
+		public function stop():void
+		{
+			_timer.removeEventListener(TickerEvent.TICKER, tickHandler);
+		}
+		
+		/**
 		 * 将角色移动到其父级指定位置
 		 * @param	x  
 		 * @param	y
 		 */
-		public function moveTo(x:Number, y:Number):void { }
+		public function moveTo(x:Number, y:Number):void 
+		{
+			targetPoint.x = x;
+			targetPoint.y = y;
+		}
+		
+		/**
+		 * 让角色按一定路径行走(这里的路径是网格点，而不是实际的显示坐标)
+		 * @param	path   [{x:1,y:1},{x:1,y:2}]
+		 */
+		public function walkAsPath(path:Array):void
+		{
+			_walkPath = path;
+			_walkPath.shift();
+			moveTo((path[0]["x"] + 0.5) * MapData.GRID_WIDTH , (path[0]["y"] + 0.5) * MapData.GRID_HEIGHT);
+			//moveTo(path[0]["x"], path[0]["y"]);
+		}
 		
 		
 		/**

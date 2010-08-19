@@ -85,8 +85,8 @@
 			
 			//载入swf ui 库
 			var gameAssets:SWFLibrary = new SWFLibrary();
-			gameAssets.load("../swf/lib.swf");
-			//gameAssets.load("lib.swf");
+			//gameAssets.load("../swf/lib.swf");
+			gameAssets.load("lib.swf");
 			gameAssets.addEventListener(Event.COMPLETE, gameAssetsLoadedCompleteHandler);
 		}
 		
@@ -142,7 +142,8 @@
 			}
 			
 			
-			myAvatarID = (Math.random() * 10000 >> 0);
+			//myAvatarID = (Math.random() * 10000 >> 0);
+			myAvatarID = new Date().getTime();
 			
 			//添加地图到舞台
 			var gameMap:Maps = new Maps(stage.stageWidth, stage.stageHeight);
@@ -181,11 +182,7 @@
 				"right":1,"left":9,"walkright":17,"walkleft":25
 			});
 			
-			//var standBitmapDatas:Array = BitmapDataUtil.separateBitmapData(standImage.bitmapData, 56, 91);
 			var standBitmapDatas:Array = BitmapDataUtil.separateBitmapData(standImage.bitmapData, 100, 120);
-			//var standLeftBitmapDatas:Array = BitmapDataUtil.separateBitmapData(standLeftImage.bitmapData, 76, 128);
-			//var walkBitmapDatas:Array = BitmapDataUtil.separateBitmapData(walkImage.bitmapData, 67, 91);
-			//var walkBitmapDatas:Array = BitmapDataUtil.separateBitmapData(walkImage.bitmapData, 92, 112);
 			var allBitmapDatas:Array = standBitmapDatas.concat();
 			var animationTimer:Ticker = new Ticker(70);
 			animationTimer.start();
@@ -196,36 +193,78 @@
 			event.currentTarget.setBG([ { bitmap:bg2, vx:0.8 }, { bitmap:bg1, vx:1 } ], "map0001");
 			trace("设置背景耗时:" + (getTimer() - t1));
 			
-			//自己的出生地
-			var startPointX:int = Math.random() * 200 + 300;
+			
+			function addAvatar(playerID:String, startX:int, startY:int):void
+			{
+				var testPlayer:Player = new Player(animationTimer, allBitmapDatas, labels);
+				testPlayer.avatarID = playerID;
+				testPlayer.mouseOffest = new Point( -40, -110);
+				testPlayer.avatarName = playerID;
+				event.currentTarget.addAvatar(testPlayer, startX, startY);
+			}
 			
 			SocketClient.SetPlayerId(myAvatarID);
 			SocketClient.EnterCity(1);
-			SocketClient.Move(startPointX, 400);
 			
-			var player:Player = new Player(animationTimer, allBitmapDatas, labels);
-			player.avatarID = String(myAvatarID);
-			player.mouseOffest = new Point( -40, -110);
-			event.currentTarget.addAvatar(player, startPointX, 400);
 			
+		
+			//玩家进入的时候
 			SocketClient.OnOtherPlayerEnterCity = 
-				function (playerId : int) : void {
-					var testPlayer:Player = new Player(animationTimer, allBitmapDatas, labels);
-					testPlayer.avatarID = playerId.toString();
-					event.currentTarget.addAvatar(testPlayer, 400, 400);
+				function (playerId : int, startX:int, startY:int) : void {
+					trace("玩家进入的时候playerId" + playerId + "x:" + startX + "y:" + startY);
+					addAvatar(String(playerId), startX, startY);
 				};
-				
-			SocketClient.OnOtherPlayerMove = 
-				function (playerId : int, targetX : int, targetY : int) : void {
+				//
+			//玩家移动的时候
+			SocketClient.OnOtherPlayerMoveTo = 
+				function (playerId : int, fromX:int, fromY:int, toX:int, toY:int) : void {
 					trace(
-						"Player " + playerId + " move to {" + targetX + ", " + targetY + "}\n"
+						"Player " + playerId + " move to {" + toX + ", " + toY + "}\n"
 					);
+					
+					if (playerId != myAvatarID)
+					{
+						//event.currentTarget.getAvatarByID(String(playerId)).moveTo(fromX,fromY);
+						event.currentTarget.getAvatarByID(String(playerId)).position.x = fromX;
+						event.currentTarget.getAvatarByID(String(playerId)).position.y = fromY;
+						event.currentTarget.getAvatarByID(String(playerId)).moveTo(toX, toY);
+					}
 				};
-				
+				//
+			//玩家离开的时候
 			SocketClient.OnOtherPlayerLeaveCity = 
 				function (playerId : int) : void {
 					trace("Player " + playerId + " leave city!\n");
+					
+					var s:Boolean = event.currentTarget.removeAvatar(String(playerId));
+					trace("移除玩家是否成功:" + s);
+					
 				};
+				
+				
+			//接收当前已经在此场景中的角色
+			SocketClient.OnGetPlayerListReturn = 
+				function (playerList : Array) : void {
+					trace("接收当前已经在此场景中的角色:" + playerList);
+					var numAvatar:int = playerList.length;
+					for (var i:int = 0; i < numAvatar; i++ )
+					{
+						//if (String(playerList[i]["id"]) != myAvatarID)
+						//{
+							trace("playerID:" + String(playerList[i]["id"]));
+							addAvatar(String(playerList[i]["id"]), playerList[i]["x"], playerList[i]["y"]);
+						//}
+					}
+					
+				};
+			SocketClient.GetPlayerList();
+			
+			//自己的出生地
+			//var startPointX:int = Math.random() * 200 + 300;
+			//var player:Player = new Player(animationTimer, allBitmapDatas, labels);
+			//player.avatarID = String(myAvatarID);
+			//player.mouseOffest = new Point( -40, -110);
+			//event.currentTarget.addAvatar(player, startPointX, 400);
 			
 			//添加测试人物
 			for (var j:int = 0; j < 0; j++)

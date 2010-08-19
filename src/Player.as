@@ -35,7 +35,9 @@
 		
 		
 		
-		//-----------------------------PROTECTED FUNCTION--------------------------------
+		//===========================================================================================================
+		//  Protected method
+		//===========================================================================================================
 		
 		//时基
 		override protected function tickHandler(event:TickerEvent):void
@@ -56,7 +58,6 @@
 				var avatarEvent:AvatarEvent = new AvatarEvent(AvatarEvent.AVATAR_WALKING);
 				avatarEvent.stepPoint = p;
 				this.dispatchEvent(avatarEvent);
-				//(event as TimerEvent).updateAfterEvent();
 			}
 			
 			//根据差值计算朝向状态
@@ -106,7 +107,21 @@
 					if (!hasPassed)
 					{
 						hasPassed = true;
-						dispatchEvent(new AvatarEvent(AvatarEvent.AVATAR_ARRIVE));
+						
+						_walkPath.shift();
+						if (_walkPath.length > 0)
+						{
+							//如果路程未走完，则继续保持跑步状态
+							newState = "walk" + newState;
+							//moveTo(_walkPath[0]["x"], _walkPath[0]["y"]);
+							moveTo((_walkPath[0]["x"] + 0.5) * MapData.GRID_WIDTH , (_walkPath[0]["y"] + 0.5) * MapData.GRID_HEIGHT);
+							SocketClient.MoveTo(position.x, position.y, (_walkPath[0]["x"] + 0.5) * MapData.GRID_WIDTH, (_walkPath[0]["y"] + 0.5) * MapData.GRID_HEIGHT);
+						}
+						else
+						{
+							//当整条路径走完时才是真正到达
+							dispatchEvent(new AvatarEvent(AvatarEvent.AVATAR_ARRIVE));
+						}
 					}
 				}
 				
@@ -116,19 +131,11 @@
 			
 		}
 		
+		//===========================================================================================================
+		//  Private method
+		//===========================================================================================================
 		
-		
-		//-----------------------------PUBLIC FUNCTION-----------------------------------
-		
-		
-		override public function moveTo(x:Number, y:Number):void
-		{
-			targetPoint.x = x;
-			targetPoint.y = y;
-		}
-		
-		
-		//----------------------------PRIVATE FUNCTION------------------------------------
+		//改变角色状态(站立方位或则静止方位)
 		private function changeState(state:String):void
 		{
 			if (_curLabel == state)

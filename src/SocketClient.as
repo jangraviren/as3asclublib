@@ -1,5 +1,6 @@
-package  
+﻿package  
 {
+	import flash.geom.Point;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	import flash.events.ProgressEvent;
@@ -10,7 +11,8 @@ package
 		
 		private static var socket : Socket;
 		
-		private static var onOtherPlayerMove : Function;
+		private static var onOtherPlayerMoveTo : Function;
+		private static var onGetPlayerListReturn : Function;
 		private static var onOtherPlayerEnterCity : Function;
 		private static var onOtherPlayerLeaveCity : Function;
 		
@@ -23,7 +25,7 @@ package
 			
 			socket = new Socket();
 			
-			socket.connect("192.168.1.28", 10086);
+			socket.connect("192.168.1.35", 10086);
 			
 			socket.flush();
 			
@@ -34,9 +36,14 @@ package
 		/* Property                                                                   */
 		/******************************************************************************/
 
-		public static function set OnOtherPlayerMove (callback : Function) : void
+		public static function set OnOtherPlayerMoveTo (callback : Function) : void
 		{
-			onOtherPlayerMove = callback;
+			onOtherPlayerMoveTo = callback;
+		}
+		
+		public static function set OnGetPlayerListReturn (callback : Function) : void
+		{
+			onGetPlayerListReturn = callback;
 		}
 		
 		public static function set OnOtherPlayerEnterCity (callback : Function) : void
@@ -65,16 +72,18 @@ package
 			
 			switch (type) 
 			{
-				// Other player enter city
+				// other player enter city
 				case 1:
 					var playerId1 : int = data.readInt();
+					var startX : int = data.readShort();
+					var startY : int = data.readShort();
 					
 					if (onOtherPlayerEnterCity != null)
-						onOtherPlayerEnterCity(playerId1);
+						onOtherPlayerEnterCity(playerId1, startX, startY);
 						
 					break;
 				
-				// Other player leave city
+				// other player leave city
 				case 2:
 					var playerId2 : int = data.readInt();
 					
@@ -83,15 +92,38 @@ package
 						
 					break;
 				
-				// Other player move
+				// on get player list result
 				case 3:
-					var playerId3 : int = data.readInt();
-					var targetX : int = data.readShort();
-					var targetY : int = data.readShort();
+					var playerList : Array = new Array();
 					
-					onOtherPlayerMove(playerId3, targetX, targetY);
+					while (data.bytesAvailable > 0)
+					{
+						playerList.push(
+							{id:data.readInt(), x:data.readShort(), y:data.readShort() }
+						);
+					}
+					
+					if (onGetPlayerListReturn != null)
+						onGetPlayerListReturn(playerList);
 					
 					break;
+				
+				// other player move
+				case 4:
+					var playerId3 : int = data.readInt();
+					var fromX : int = data.readShort();
+					var fromY : int = data.readShort();
+					var toX : int = data.readShort();
+					var toY : int = data.readShort();
+					
+					onOtherPlayerMoveTo(playerId3, fromX, fromY, toX, toY);
+					
+					break;
+			}
+			
+			if (socket.bytesAvailable > 0)
+			{
+				trace(socket.bytesAvailable);
 			}
 		}
 		
@@ -139,16 +171,32 @@ package
 			socket.flush();
 		}
 		
-		public static function Move (targetX : int, targetY : int) : void
+		public static function GetPlayerList () : void
 		{
 			Init();
 			
 			var data : ByteArray = new ByteArray();
 			
-			data.writeShort(6);			//head
+			data.writeShort(2);			//head
 			data.writeShort(3); 		//type
-			data.writeShort(targetX);
-			data.writeShort(targetY);
+			
+			socket.writeBytes(data, 0, data.length);
+			
+			socket.flush();
+		}
+		
+		public static function MoveTo (fromX : int, fromY : int, toX : int, toY : int) : void
+		{
+			Init();
+			
+			var data : ByteArray = new ByteArray();
+			
+			data.writeShort(10);		//head
+			data.writeShort(4); 		//type
+			data.writeShort(fromX);
+			data.writeShort(fromY);
+			data.writeShort(toX);
+			data.writeShort(toY);
 			
 			socket.writeBytes(data, 0, data.length);
 			
