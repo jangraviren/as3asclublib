@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<!--网格宽度-->
+	<gridWidth>50</gridWidth>
+	<!--网格高度-->
+	<gridHeight>50</gridHeight>
+	<!--网格线颜色-->
+	<lineColor>0x333333</lineColor>
+</config>

@@ -51,6 +51,8 @@
 		//是否是横板游戏
 		public static const isTabula:Boolean = true;
 		
+		public static var myAvatarID:int;
+		
 		//===========================================================================================================
 		//  Constructor
 		//===========================================================================================================
@@ -140,6 +142,8 @@
 			}
 			
 			
+			myAvatarID = (Math.random() * 10000 >> 0);
+			
 			//添加地图到舞台
 			var gameMap:Maps = new Maps(stage.stageWidth, stage.stageHeight);
 			gameMap.addEventListener(Event.ADDED_TO_STAGE, mapAddToStage);
@@ -192,10 +196,36 @@
 			event.currentTarget.setBG([ { bitmap:bg2, vx:0.8 }, { bitmap:bg1, vx:1 } ], "map0001");
 			trace("设置背景耗时:" + (getTimer() - t1));
 			
+			//自己的出生地
+			var startPointX:int = Math.random() * 200 + 300;
+			
+			SocketClient.SetPlayerId(myAvatarID);
+			SocketClient.EnterCity(1);
+			SocketClient.Move(startPointX, 400);
+			
 			var player:Player = new Player(animationTimer, allBitmapDatas, labels);
-			player.avatarID = "007";
+			player.avatarID = String(myAvatarID);
 			player.mouseOffest = new Point( -40, -110);
-			event.currentTarget.addAvatar(player, 300, 400);
+			event.currentTarget.addAvatar(player, startPointX, 400);
+			
+			SocketClient.OnOtherPlayerEnterCity = 
+				function (playerId : int) : void {
+					var testPlayer:Player = new Player(animationTimer, allBitmapDatas, labels);
+					testPlayer.avatarID = playerId.toString();
+					event.currentTarget.addAvatar(testPlayer, 400, 400);
+				};
+				
+			SocketClient.OnOtherPlayerMove = 
+				function (playerId : int, targetX : int, targetY : int) : void {
+					trace(
+						"Player " + playerId + " move to {" + targetX + ", " + targetY + "}\n"
+					);
+				};
+				
+			SocketClient.OnOtherPlayerLeaveCity = 
+				function (playerId : int) : void {
+					trace("Player " + playerId + " leave city!\n");
+				};
 			
 			//添加测试人物
 			for (var j:int = 0; j < 0; j++)
@@ -204,6 +234,8 @@
 				testPlayer.avatarID = "008";
 				event.currentTarget.addAvatar(testPlayer, Math.random() * bg1.width + 50, Math.random() * 30 + 300);
 			}
+			
+			
 		}
 		
 	}//end of class

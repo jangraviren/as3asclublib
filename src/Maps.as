@@ -27,6 +27,9 @@
 		//背景缓存 关联数组
 		private var _bgMaps:Dictionary;
 		
+		//角色缓存 关联数组
+		private var _avatarMaps:Dictionary;
+		
 		//背景层各位图速率
 		private var _bgBitmapSpeed:Array = [];
 		
@@ -162,40 +165,67 @@
 		 */
 		public function addAvatar(avatar:Avatar, x:Number, y:Number):void
 		{
-			//刚添加到地图上时，起点==终点
-			avatar.startPoint = new Point(x, y);
-			//avatar.targetPoint = avatar.startPoint.subtract(avatar.mouseOffest);
-			avatar.targetPoint = avatar.startPoint;
-			_avatarLayer.addChild(avatar);
-			//暂时先写死自己的角色ID是007
-			if (avatar.avatarID == "007")
-			{
-				_myself = avatar;
-				//将自己所在的位置移动到显示区域中央(如果玩家的出生地在地图右侧，而显示区域只显示左侧区域，这时就看不到玩家自己)
-				var stepX:Number = x - _rangeWidth * 0.5;
-				stepX = stepX < 0 ? 0 : (stepX > _bgWidth - _rangeWidth ? _bgWidth - _rangeWidth : stepX);
-				var stepY:Number = y - _rangeHeight * 0.5;
-				stepY = stepY < 0 ? 0 : (stepY > _bgLayer.height - _rangeHeight ? _bgLayer.height - _rangeHeight : stepY);
-				//trace("stepX:" + stepX, "  stepY:" + stepY);
-				//_range.x = stepX;
-				//_range.y = stepY;
-				//this.scrollRect = _range;
-				
-				updateSceneScrollRect(new Point(stepX, stepY));
-				//移动过程监听
-				_myself.addEventListener(AvatarEvent.AVATAR_WALKING, myselfWalkingHandler);
-				//移动到目标点时监听
-				_myself.addEventListener(AvatarEvent.AVATAR_ARRIVE, myselfWalkingArriveHandler);
+			//如果缓存中有就不重复添加
+			if (!(avatar.avatarID in _avatarMaps))
+			{	
+				//刚添加到地图上时，起点==终点
+				avatar.startPoint = new Point(x, y);
+				//avatar.targetPoint = avatar.startPoint.subtract(avatar.mouseOffest);
+				avatar.targetPoint = avatar.startPoint;
+				_avatarLayer.addChild(avatar);
+				//如果角色ID等于自己的ID，则这个角色就是自己
+				if (avatar.avatarID == String(Main.myAvatarID))
+				{
+					_myself = avatar;
+					//将自己所在的位置移动到显示区域中央(如果玩家的出生地在地图右侧，而显示区域只显示左侧区域，这时就看不到玩家自己)
+					var stepX:Number = x - _rangeWidth * 0.5;
+					stepX = stepX < 0 ? 0 : (stepX > _bgWidth - _rangeWidth ? _bgWidth - _rangeWidth : stepX);
+					var stepY:Number = y - _rangeHeight * 0.5;
+					stepY = stepY < 0 ? 0 : (stepY > _bgLayer.height - _rangeHeight ? _bgLayer.height - _rangeHeight : stepY);
+					//trace("stepX:" + stepX, "  stepY:" + stepY);
+					//_range.x = stepX;
+					//_range.y = stepY;
+					//this.scrollRect = _range;
+					
+					updateSceneScrollRect(new Point(stepX, stepY));
+					//移动过程监听
+					_myself.addEventListener(AvatarEvent.AVATAR_WALKING, myselfWalkingHandler);
+					//移动到目标点时监听
+					_myself.addEventListener(AvatarEvent.AVATAR_ARRIVE, myselfWalkingArriveHandler);
+				}
 			}
 		}
 		
 		/**
-		 * 移除游戏角色
-		 * @param	avatar
+		 * 通过角色ID获取角色实例
+		 * @param	avatarID
+		 * @return
 		 */
-		public function removeAvatar(avatar:Avatar):void
+		public function getAvatarByID(avatarID:String):Avatar
 		{
+			if (!(avatarID in _avatarMaps))
+			{
+				return null;
+			}
+			return _avatarMaps[avatarID];
+		}
+		
+		/**
+		 * 移除游戏角色
+		 * @param	avatarID
+		 * @return
+		 */
+		public function removeAvatar(avatarID:String):Boolean
+		{
+			if (!(avatarID in _avatarMaps))
+			{
+				return false;
+			}
 			
+			_avatarLayer.removeChild(_avatarMaps[avatarID]);
+			_avatarMaps[avatarID] = null;
+			
+			return true;
 		}
 		
 		/**
@@ -232,6 +262,9 @@
 			//地图可见区域
 			_range = new Rectangle(0, 0, _rangeWidth, _rangeHeight);
 			this.scrollRect = _range;
+			
+			//缓存角色 的 关联数组
+			_avatarMaps = new Dictionary();
 			
 			//存放背景 的 关联数组
 			_bgMaps = new Dictionary();
