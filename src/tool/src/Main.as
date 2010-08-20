@@ -8,6 +8,8 @@
 	import flash.net.FileReference;
 	import flash.net.navigateToURL;
 	import flash.net.URLRequest;
+	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 	
 	import org.asclub.game.DefaultConfig;
 	import org.asclub.net.WebLoader;
@@ -23,8 +25,11 @@
 		//图形文件
 		private var _imageTypes:FileFilter;
 		
-		//文件加载器
+		//文件加载器(用于打开)
 		private var _fileRef:FileReference;
+		
+		//文件加载器(用于保存)
+		private var _fileSaveRef:FileReference;
 		
 		//单元格宽度
 		private var _gridWidth:int = 0;
@@ -40,6 +45,12 @@
 		
 		//网格线颜色
 		private var _lineColor:uint = 0;
+		
+		//颜色定义
+		private var _colorDefineList:XMLList;
+		
+		//颜色容器
+		private var _colorContainer:Array;
 		
 		//网格是否显示
 		private var _griddingVisible:Boolean = false;
@@ -92,6 +103,10 @@
 			_fileRef.addEventListener(Event.SELECT, fileSelectedHandler);
 			_fileRef.addEventListener(Event.COMPLETE, fileLoadedCompleteHandler);
 			
+			//文件保存
+			_fileSaveRef = new FileReference();
+			_fileSaveRef.addEventListener(Event.COMPLETE, fileSaveCompleteHandler);
+			
 			//载入配置文件
 			var webLoader:WebLoader = new WebLoader();
 			webLoader.addEventListener(Event.COMPLETE, loadConfigFileCompleteHandler);
@@ -129,6 +144,8 @@
 			_gridWidth = config.gridWidth;
 			_gridHeight = config.gridHeight;
 			_lineColor = config.lineColor;
+			_colorDefineList = config.colorDefine.item;
+			trace("_colorDefineList:" + _colorDefineList[0]["name"]);
 			
 			//添加右键
 			ContextMenuManager.hideBuiltInItems(this, true);
@@ -165,6 +182,12 @@
 			trace("fileLoadedCompleteHandler");
 			_imageLoader.loadBytes(_fileRef.data);
 			_imageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, mapLoadedComleteHandler);
+		}
+		
+		//文件成功保存时触发
+		private function fileSaveCompleteHandler(event:Event):void
+		{
+			trace("fileSaveCompleteHandler");
 		}
 		
 		//地图完全载入
@@ -209,23 +232,109 @@
 			navigateToURL(new URLRequest("http://www.google.com.hk"));
 		}
 		
-		//生成地图数据
+		//保存地图数据
 		private function saveMapData(event:Event):void
 		{
 			var mapBitmapData:BitmapData = new BitmapData(_mapWidth, _mapHeight);
 			mapBitmapData.draw(_imageLoader);
-			var pixelValue:uint = mapBitmapData.getPixel(1, 1);
+			var pixelValue:uint = mapBitmapData.getPixel(0, 0);
 			trace(pixelValue.toString(16)); // ffffff;
-			var data:String = "w=" + _numGridWidth + "&h=" + _numGridHeight;
-			var colorContainer:Array = [];
+			//trace(pixelValue); // 16777215;
+			
+			//定义的颜色数量
+			var numColor:int = _colorDefineList.length();
+			
+			mapDataInit();
+			
+			//因为是逐个像素进行比较，所以耗cpu比较严重(可以想象 2500 * 600 * 2 次循环...)
 			for (var i:int = 0; i < _mapWidth; i++)
 			{
-				colorContainer[i / _gridWidth >> 0] = [];
 				for (var j:int = 0; j < _mapHeight; j++)
 				{
-					
+					var color:String = mapBitmapData.getPixel(i, j).toString(16);
+					var pointX:int = i / _gridWidth >> 0;
+					var pointY:int = j / _gridHeight >> 0;
+					for (var k:int = 0; k < numColor; k++)
+					{
+						if (_colorDefineList[k]["color"] == color)
+						{
+							_colorContainer[pointX][pointY][_colorDefineList[k]["name"]] ++;
+							//如果颜色一样则就没有再进行本轮的循环的必要，当定义的颜色多的时候效果较好
+							continue;
+						}
+						
+					}
+				}
+			}
+			
+			
+			createMapdata();
+		}
+		
+		//地图数据初始化
+		private function mapDataInit():void
+		{
+			//定义的颜色数量
+			var numColor:int = _colorDefineList.length();
+			_colorContainer = [];
+			//var testObject:Object = {};
+			//testObject["a"] ++;
+			//trace(testObject["a"]);   //得到 NaN
+			//所以 先 testObject["a"] = 0;  再 testObject["a"] ++;
+			for (var i:int = 0; i < _numGridWidth; i++)
+			{
+				_colorContainer[i] = [];
+				for (var j:int = 0; j < _numGridHeight; j++)
+				{
+					var colorObject:Object = { };
+					for (var k:int = 0; k < numColor; k++)
+					{
+						colorObject[_colorDefineList[k]["name"]] = 0;
+					}
+					_colorContainer[i][j] = colorObject;
 				}
 			}
 		}
+		
+		//创建地图数据
+		private function createMapdata():void
+		{
+			var t1:int = getTimer();
+			//定义的颜色数量
+			var numColor:int = _colorDefineList.length();
+			
+			//存放将进行排序的颜色，结构如下 [{num:1500,value:0},{num:500,value:1},{num:1000,value:2}]
+			var sortArray:Array = [];
+			//
+			var mapData:Array = [];
+			
+			for (var i:int = 0; i < _numGridWidth; i++)
+			{
+				for (var j:int = 0; j < _numGridHeight; j++)
+				{
+					var colorObject:Object = _colorContainer[i][j];
+					sortArray.length = 0;
+					//var sortArray:Array = [];
+					for (var k:int = 0; k < numColor; k++)
+					{
+						sortArray.push( { num:colorObject[_colorDefineList[k]["name"]], value:_colorDefineList[k]["value"] } );
+					}
+					sortArray.sortOn("num", Array.NUMERIC | Array.DESCENDING);
+					//var value:int = sortArray[0]["value"];
+					mapData.push(sortArray[0]["value"]);
+				}
+			}
+			
+			
+			trace("生成数据耗时:" + (getTimer() - t1));
+			
+			var data:String = "w=" + _numGridWidth + "&h=" + _numGridHeight + "&data=" + mapData.join("|");
+			var byteArray:ByteArray = new ByteArray();
+			byteArray.writeUTFBytes(data);
+			
+			_fileSaveRef.save(byteArray, "mapData.txt");
+			
+		}
+		
 	}//end class
 }

@@ -1,5 +1,7 @@
 ﻿package  
 {
+	import flash.events.Event;
+	import flash.events.IOErrorEvent;
 	import flash.geom.Point;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
@@ -11,31 +13,45 @@
 		
 		private static var socket : Socket;
 		
+		private static var onConnect : Function;
 		private static var onOtherPlayerMoveTo : Function;
 		private static var onGetPlayerListReturn : Function;
 		private static var onOtherPlayerEnterCity : Function;
 		private static var onOtherPlayerLeaveCity : Function;
 		
-		private static function Init () : void
+		public static function Init () : void
 		{
 			if (init)
 				return;
 			
 			init = true;
 			
+			pack_len = -1;
+			
 			socket = new Socket();
 			
-			socket.connect("192.168.1.35", 10086);
+			socket.connect("unbe.cn", 10086);
 			
 			socket.flush();
 			
+			socket.addEventListener(Event.CONNECT, OnSocketConnect);
+			
 			socket.addEventListener(ProgressEvent.SOCKET_DATA, OnSocketData);
+			
+			socket.addEventListener(IOErrorEvent.IO_ERROR, function (e:IOErrorEvent) : void { 
+				trace("IO Error");
+			});
 		}
 		
 		/******************************************************************************/
 		/* Property                                                                   */
 		/******************************************************************************/
 
+		public static function set OnConnect (callback : Function) : void
+		{
+			onConnect = callback;
+		}
+		
 		public static function set OnOtherPlayerMoveTo (callback : Function) : void
 		{
 			onOtherPlayerMoveTo = callback;
@@ -60,18 +76,47 @@
 		/* Method                                                                     */
 		/******************************************************************************/
 
+		private static var pack_len : int;
+		private static var buffer : ByteArray;
+		
+		private static function OnSocketConnect (event:Event) : void 
+		{
+			if (onConnect != null)
+				onConnect();
+		}
+		
 		private static function OnSocketData (event:ProgressEvent) : void
 		{
-			var length : int = socket.readShort();
-			
-			var data : ByteArray = new ByteArray();
-			
-			socket.readBytes(data, 0, length);
-			
+			while (socket.bytesAvailable > 0)
+			{
+				if (pack_len == -1)
+				{
+					pack_len = socket.readShort();
+					
+					buffer = new ByteArray();
+				}
+				
+				socket.readBytes(buffer, 0, pack_len - buffer.length);
+				
+				if (buffer.length == pack_len)
+				{
+					ParseSocketData(buffer);
+					
+					pack_len = -1;
+				}
+			}
+		}
+		
+		private static function ParseSocketData (data : ByteArray) : void 
+		{
 			var type : int = data.readShort();
 			
 			switch (type) 
 			{
+				case 0:
+					trace("server say hello");
+					break;
+					
 				// other player enter city
 				case 1:
 					var playerId1 : int = data.readInt();
@@ -120,17 +165,10 @@
 					
 					break;
 			}
-			
-			if (socket.bytesAvailable > 0)
-			{
-				trace(socket.bytesAvailable);
-			}
 		}
 		
 		public static function SetPlayerId (playerId : int) : void
 		{
-			Init();
-			
 			var data : ByteArray = new ByteArray();
 			
 			data.writeShort(6); 		//head
@@ -144,8 +182,6 @@
 		
 		public static function EnterCity (cityId : int) : void
 		{
-			Init();
-			
 			var data : ByteArray = new ByteArray();
 			
 			data.writeShort(4);			//head
@@ -159,8 +195,6 @@
 		
 		public static function LeaveCity () : void
 		{
-			Init();
-			
 			var data : ByteArray = new ByteArray();
 			
 			data.writeShort(2);			//head
@@ -173,8 +207,6 @@
 		
 		public static function GetPlayerList () : void
 		{
-			Init();
-			
 			var data : ByteArray = new ByteArray();
 			
 			data.writeShort(2);			//head
@@ -187,8 +219,6 @@
 		
 		public static function MoveTo (fromX : int, fromY : int, toX : int, toY : int) : void
 		{
-			Init();
-			
 			var data : ByteArray = new ByteArray();
 			
 			data.writeShort(10);		//head

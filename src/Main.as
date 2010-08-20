@@ -6,6 +6,7 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.text.TextField;
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
 	
@@ -22,6 +23,7 @@
 	 * ...
 	 * @author DefaultUser (Tools -> Custom Arguments...)
 	 */
+	[Frame(factoryClass="Preloader")]
 	public class Main extends Sprite
 	{
 		
@@ -52,6 +54,12 @@
 		public static const isTabula:Boolean = true;
 		
 		public static var myAvatarID:int;
+		
+		//在线玩家
+		private var _onlineUser:Array = [];
+		
+		//在线玩家人数文本框
+		private var _onlineUserTxt:TextField;
 		
 		//===========================================================================================================
 		//  Constructor
@@ -157,6 +165,15 @@
 			//添加内存占用观察器
 			var monitorKit:MonitorKit = new MonitorKit("MKMODE_TR");
 			addChild(monitorKit);
+			
+			//添加在线玩家文本框
+			_onlineUserTxt = new TextField();
+			_onlineUserTxt.textColor = 0xffffff;
+			_onlineUserTxt.text = "在线人数";
+			_onlineUserTxt.height = _onlineUserTxt.textHeight + 4;
+			_onlineUserTxt.x = stage.stageWidth - _onlineUserTxt.width;
+			_onlineUserTxt.y = monitorKit.y + monitorKit.height + 60;
+			addChild(_onlineUserTxt);
 		}
 		
 		//地图被添加到舞台上时触发		
@@ -202,17 +219,14 @@
 				testPlayer.avatarName = playerID;
 				event.currentTarget.addAvatar(testPlayer, startX, startY);
 			}
-			
-			SocketClient.SetPlayerId(myAvatarID);
-			SocketClient.EnterCity(1);
-			
-			
 		
 			//玩家进入的时候
 			SocketClient.OnOtherPlayerEnterCity = 
 				function (playerId : int, startX:int, startY:int) : void {
 					trace("玩家进入的时候playerId" + playerId + "x:" + startX + "y:" + startY);
 					addAvatar(String(playerId), startX, startY);
+					_onlineUser.push(playerId);
+					_onlineUserTxt.text = "在线人数：" + _onlineUser.length + "人";
 				};
 				//
 			//玩家移动的时候
@@ -239,6 +253,12 @@
 					var s:Boolean = event.currentTarget.removeAvatar(String(playerId));
 					trace("移除玩家是否成功:" + s);
 					
+					var playerIndex:int = _onlineUser.indexOf(playerId);
+					if (playerIndex != -1)
+					{
+						_onlineUser.splice(playerIndex, 1);
+					}
+					_onlineUserTxt.text = "在线人数：" + _onlineUser.length + "人";
 				};
 				
 				
@@ -254,10 +274,24 @@
 							trace("playerID:" + String(playerList[i]["id"]));
 							addAvatar(String(playerList[i]["id"]), playerList[i]["x"], playerList[i]["y"]);
 						//}
+						_onlineUser.push(playerList[i]["id"]);
 					}
-					
+					_onlineUserTxt.text = "在线人数：" + _onlineUser.length + "人";
 				};
-			SocketClient.GetPlayerList();
+			//SocketClient.GetPlayerList();
+			
+			
+			
+			SocketClient.OnConnect =
+				function () : void {
+					
+				SocketClient.SetPlayerId(myAvatarID);
+				SocketClient.EnterCity(1);
+						
+				SocketClient.GetPlayerList();
+				}
+			
+			SocketClient.Init();
 			
 			//自己的出生地
 			//var startPointX:int = Math.random() * 200 + 300;

@@ -6,4 +6,20 @@
 	<gridHeight>50</gridHeight>
 	<!--网格线颜色-->
 	<lineColor>0x333333</lineColor>
+	<!--颜色定义  不同的颜色有不同的含义，可自行定义，如白色表示无任何障碍物，可行走，值为0 ；
+	黑色为障碍物，不可行走，值为1；以后可拓展，如红色表示层级比角色高的石头、树等等，角色可以行走，但行走
+	过的时候交换层级或则角色改成半透明等等一下效果 -->
+	<!--ps:   为了提高生成地图数据的速度，请将面积较大的颜色放前面-->
+	<colorDefine>
+		<item>
+			<name>white</name>
+			<color>ffffff</color>
+			<value>0</value>
+		</item>
+		<item>
+			<name>black</name>
+			<color>0</color>
+			<value>1</value>
+		</item>
+	</colorDefine>
 </config>
