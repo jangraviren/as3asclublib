@@ -82,19 +82,7 @@
 			_animation[labels[0].name].play();
 			addChild(_curPlayingAnimation);
 			
-			//添加文本框
-			_labelName = new TextField();
-			var textFormat:TextFormat = new TextFormat();
-			textFormat.align = TextFieldAutoSize.CENTER;
-			textFormat.size = 12;
-			textFormat.font = "宋体";
-			_labelName.defaultTextFormat = textFormat;
-			_labelName.text = "test";
-			_labelName.width = _curPlayingAnimation.width + 50;
-			_labelName.height = _labelName.textHeight + 4;
-			_labelName.x = _curPlayingAnimation.x + (_curPlayingAnimation.width - _labelName.width) * 0.5;
-			_labelName.y = _curPlayingAnimation.y + 120;
-			addChild(_labelName);
+			init();
 		}
 		
 		//九宫格帧标签(角色的八个方向)
@@ -203,10 +191,13 @@
 		 */
 		public function walkAsPath(path:Array):void
 		{
-			_walkPath = path;
-			_walkPath.shift();
-			moveTo((path[0]["x"] + 0.5) * MapData.GRID_WIDTH , (path[0]["y"] + 0.5) * MapData.GRID_HEIGHT);
-			//moveTo(path[0]["x"], path[0]["y"]);
+			if (path.length > 0)
+			{
+				_walkPath = path;
+				_walkPath.shift();
+				moveTo((path[0]["x"] + 0.5) * MapData.GRID_WIDTH , (path[0]["y"] + 0.5) * MapData.GRID_HEIGHT);
+				//moveTo(path[0]["x"], path[0]["y"]);
+			}
 		}
 		
 		
@@ -222,6 +213,30 @@
 		
 		//时基
 		protected function tickHandler(event:TickerEvent):void { }
+		
+		
+		//===========================================================================================================
+		//  Protected method
+		//===========================================================================================================
+		
+		private function init():void
+		{
+			//添加文本框
+			_labelName = new TextField();
+			var textFormat:TextFormat = new TextFormat();
+			textFormat.align = TextFieldAutoSize.CENTER;
+			textFormat.size = 12;
+			textFormat.font = "宋体";
+			_labelName.selectable = false;
+			_labelName.defaultTextFormat = textFormat;
+			_labelName.text = "test";
+			_labelName.width = _curPlayingAnimation.width + 50;
+			_labelName.height = _labelName.textHeight + 4;
+			_labelName.x = _curPlayingAnimation.x + (_curPlayingAnimation.width - _labelName.width) * 0.5;
+			_labelName.y = _curPlayingAnimation.y + 120;
+			addChild(_labelName);
+		}
+		
 		
 	}//end of class
 }

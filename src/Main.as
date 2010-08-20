@@ -6,6 +6,7 @@
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
+	import flash.net.URLVariables;
 	import flash.text.TextField;
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
@@ -17,6 +18,7 @@
 	import org.asclub.display.FrameUtil;
 	import org.asclub.game.DefaultConfig;
 	import org.asclub.system.MonitorKit;
+	import org.asclub.net.WebLoader;
 	import org.asclub.net.SWFLibrary;
 	
 	/**
@@ -105,38 +107,44 @@
 		//游戏ui资源载入完毕时触发
 		private function gameAssetsLoadedCompleteHandler(event:Event):void
 		{
-			//先模拟一个地图数据
+			//载入地图数据
+			var webLoader:WebLoader = new WebLoader();
+			webLoader.addEventListener(Event.COMPLETE, mapDataLoadedCompleteHandler);
+			webLoader.load("../data/map0001.txt");
+		}
+		
+		//地图数据载入完成
+		private function mapDataLoadedCompleteHandler(event:Event):void
+		{
+			//解析生成地图数据
 			var mapData:Object = { };
 			mapData["pathArray"] = [];
-			mapData["numX"] = 50;
-			mapData["numY"] = 13;
+			//mapData["numX"] = 50;
+			//mapData["numY"] = 13;
 			
-			//for (var y1:int = 0; y1 < 13; y1++)
-			//{
-				//mapData["pathArray"][y1] = [];
-				//for (var x1:int = 0; x1 < 50; x1++)
-				//{
-					//mapData["pathArray"][y1][x1] = 1;
-				//}
-			//}
-			//
-			//for (var y2:int = 7; y2 < 13; y2++)
-			//{
-				//mapData["pathArray"][y2] = [];
-				//for (var x2:int = 0; x2 < 50; x2++)
-				//{
-					//mapData["pathArray"][y2][x2] = 0;
-				//}
-			//}
+			var dataVariables:URLVariables = new URLVariables(event.currentTarget.data);
+			mapData["numX"] = int(dataVariables.w);
+			mapData["numY"] = int(dataVariables.h);
+			var pathStringArray:Array = String(dataVariables.data).split("|");
 			
-			for (var x1:int = 0; x1 < 50; x1++)
+			for (var x1:int = 0; x1 < mapData["numX"]; x1++)
 			{
 				mapData["pathArray"][x1] = [];
-				for (var y1:int = 0; y1 < 13; y1++)
+				for (var y1:int = 0; y1 < mapData["numY"]; y1++)
 				{
-					mapData["pathArray"][x1][y1] = 0;
+					mapData["pathArray"][x1][y1] = pathStringArray[x1 * mapData["numY"] + y1];
+					trace(x1 * mapData["numY"] + y1);
 				}
 			}
+			
+			//for (var x1:int = 0; x1 < 50; x1++)
+			//{
+				//mapData["pathArray"][x1] = [];
+				//for (var y1:int = 0; y1 < 13; y1++)
+				//{
+					//mapData["pathArray"][x1][y1] = 0;
+				//}
+			//}
 			
 			MapData.setMapData(mapData, "map0001");
 			

@@ -293,8 +293,8 @@
 			
 			this.addChild(_bgLayer);
 			this.addChild(_transmissionGateLayer);
-			this.addChild(_activeLayer);
 			this.addChild(_avatarLayer);
+			this.addChild(_activeLayer);
 			this.addChild(_effectLayer);
 		}
 		
