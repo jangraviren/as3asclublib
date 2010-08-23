@@ -322,12 +322,14 @@
 			
 			if (_mapArray[clickedX][clickedY] == 0)
 			{
-				showClickEffect();
-				//SocketClient.Move(this.mouseX, this.mouseY);
-				//var walkArray:Array = SearchRoad.startSearch(_mapArray, clickedX, clickedY, nowX, nowY);
+				
 				var walkArray:Array = AStar.searchRoad(_mapArray, clickedX, clickedY, nowX, nowY);
 				if (walkArray)
 				{
+					if (walkArray.length > 0)
+					{
+						showClickEffect();
+					}
 					//_myself.moveTo(this.mouseX, this.mouseY);
 					_myself.walkAsPath(walkArray);
 					trace("路径长度:" + walkArray.length);

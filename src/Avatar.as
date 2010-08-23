@@ -82,7 +82,7 @@
 			_animation[labels[0].name].play();
 			addChild(_curPlayingAnimation);
 			
-			init();
+			addLabelTextFiled();
 		}
 		
 		//九宫格帧标签(角色的八个方向)
@@ -219,7 +219,7 @@
 		//  Protected method
 		//===========================================================================================================
 		
-		private function init():void
+		private function addLabelTextFiled():void
 		{
 			//添加文本框
 			_labelName = new TextField();
